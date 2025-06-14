@@ -72,8 +72,6 @@ function clearMarkers() {
   }
 }
 
-const API_URL = process.env.VITE_API_URL || 'http://localhost:5000';
-
 async function submitStations() {
   if (stations.length < 2) {
     alert('Please add at least 2 stations to generate a route.');
@@ -81,7 +79,7 @@ async function submitStations() {
   }
 
   try {
-    const response = await fetch(`${API_URL}/generate-route`, {
+    const response = await fetch('http://localhost:5000/generate-route', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ stations: stations })
@@ -122,56 +120,5 @@ async function submitStations() {
   } catch (error) {
     console.error('Error:', error);
     alert('Failed to generate route. Please try again.');
-  }
-}
-
-async function submitSlimeMoldRoute() {
-  if (stations.length < 2) {
-    alert('Please add at least 2 stations to generate a route.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/generate-slime-route`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stations: stations })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const geojson = await response.json();
-    
-    // Clear any existing routes
-    map.eachLayer((layer) => {
-      if (layer instanceof L.GeoJSON) {
-        map.removeLayer(layer);
-      }
-    });
-
-    // Add the new route
-    L.geoJSON(geojson, {
-      style: function (feature) {
-        return { 
-          color: feature.properties.type === "route" ? "green" : "blue",
-          weight: 3,
-          opacity: 0.7
-        };
-      }
-    }).addTo(map);
-
-    // Create download link for the GeoJSON
-    const blob = new Blob([JSON.stringify(geojson)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const downloadLink = document.getElementById("download");
-    if (downloadLink) {
-      downloadLink.href = url;
-      downloadLink.style.display = 'inline-block';
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Failed to generate slime mold route. Please try again.');
   }
 }
